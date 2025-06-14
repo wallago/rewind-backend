@@ -19,7 +19,12 @@ pub async fn run() -> Result<()> {
             )
             .wrap(middleware::Logger::default())
             .app_data(web::Data::new(pool.clone()))
-            .service(web::scope("api").service(services::tasks::routes::services()))
+            .service(
+                web::scope("api")
+                    .service(services::boards::routes::services())
+                    .service(services::lists::routes::services())
+                    .service(services::tasks::routes::services()),
+            )
     })
     .bind(&CONFIG.app.server_url())
     .context("could not bind server")?;
