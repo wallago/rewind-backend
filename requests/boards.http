@@ -1,16 +1,13 @@
-GET {{API_URL}}/tasks HTTP/1.1
+GET {{API_URL}}/boards HTTP/1.1
 Accept: application/json
 
 ###
 
-POST {{API_URL}}/tasks HTTP/1.1
+POST {{API_URL}}/boards HTTP/1.1
 Content-Type: application/json
 
 {
-  "status": "Todo",
-  "name": "Joe Doe",
-  "position": 1,
-  "list_uuid": "7821fc0f-c6f5-4827-ae5b-58bdffa2cab5"
+  "name": "Joe Doe"
 }
 
 > {%
@@ -20,12 +17,12 @@ Content-Type: application/json
 
 ###
 
-GET {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+GET {{API_URL}}/boards/{{UUID}} HTTP/1.1
 Accept: application/json
 
 ###
 
-PUT {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+PUT {{API_URL}}/boards/{{UUID}} HTTP/1.1
 Content-Type: application/json
 Accept: application/json
 
@@ -41,5 +38,5 @@ Accept: application/json
 
 ###
 
-DELETE {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+DELETE {{API_URL}}/boards/{{UUID}} HTTP/1.1
 Accept: application/json
