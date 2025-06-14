@@ -1,0 +1,42 @@
+@URL = http://{{APP_HOST}}:{{APP_PORT}}/api/tasks
+@UUID = 823bf894-d288-4152-a522-5e35bb009bbb
+
+### Get all tasks
+GET {{URL}}
+Accept: application/json
+
+### Add task
+
+POST {{URL}}
+Content-Type: application/json
+
+{
+  "status": "Todo",
+  "name": "Joe Doe",
+  "position": 0,
+  "list_uuid": "fe7c15e0-df82-43fe-b989-d05dbc30dc86"
+}
+
+> {%
+  const data = JSON.parse(response.body);
+  client.global.set("UUID", data.uuid);
+%}
+
+### Get task
+GET {{URL}}/{{UUID}}
+Accept: application/json
+
+### Update task
+PUT {{URL}}/{{UUID}}
+Accept: application/json
+
+{
+  "title": "Buy milk",
+  "status": "Done"
+}
+
+### Delete task
+DELETE {{URL}}/{{UUID}}
+Accept: application/json
+
+
