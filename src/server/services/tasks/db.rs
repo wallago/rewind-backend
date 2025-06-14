@@ -1,11 +1,8 @@
 use anyhow::Result;
-use chrono::Utc;
-use uuid::Uuid;
 
 use crate::{
     config::DbPool,
     models::tasks::{NewTask, Status, Task},
-    // models::tasks::{NewTask, Task, UpdateTask},
 };
 
 pub async fn list_all_tasks(pool: &DbPool) -> Result<Vec<Task>> {
@@ -34,10 +31,10 @@ pub async fn list_all_tasks(pool: &DbPool) -> Result<Vec<Task>> {
 pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Task> {
     let rec = sqlx::query_as::<_, Task>(
         r#"
-        INSERT INTO tasks (list_uuid, name, description, status, position)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-    "#,
+            INSERT INTO tasks (list_uuid, name, description, status, position)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+        "#,
     )
     .bind(new_task.list_uuid)
     .bind(new_task.name)

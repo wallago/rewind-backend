@@ -12,12 +12,12 @@
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
-        rust = pkgs.rust-bin.nightly.latest.default;
+        rust = pkgs.rust-bin.nightly.latest.complete;
       in {
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs;
-              [ sqlx-cli postgresql openssl pkg-config ] ++ [ rust ];
+              [ postgresql openssl pkg-config ] ++ [ rust ];
             shellHook = ''
               export PATH=$PATH:$(pwd)/nix/shell
               echo "

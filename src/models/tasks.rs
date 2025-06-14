@@ -1,4 +1,4 @@
-use chrono::{DateTime, Local, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -32,20 +32,7 @@ pub struct NewTask {
 #[sqlx(type_name = "status")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Status {
-    Todo,
-    InProgress,
-    Done,
+    Todo = 0,
+    InProgress = 1,
+    Done = 2,
 }
-
-// #[derive(Debug, AsChangeset, Deserialize)]
-// #[diesel(table_name = tasks)]
-// pub struct UpdateTask {
-//     pub name: Option<String>,
-//     pub description: Option<String>,
-//     pub status: Option<Status>,
-//     pub position: Option<i32>,
-//     pub updated_at: Option<String>,
-//     pub deadline: Option<String>,
-//     pub start_date: Option<String>,
-//     pub finish_date: Option<String>,
-// }

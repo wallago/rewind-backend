@@ -19,7 +19,7 @@ pub async fn list_tasks(pool: web::Data<DbPool>) -> impl Responder {
 pub async fn create_task(pool: web::Data<DbPool>, new_task: web::Json<NewTask>) -> impl Responder {
     match db::insert_task(&pool, new_task.into_inner()).await {
         Ok(task) => HttpResponse::Ok().json(task),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
 
