@@ -1,27 +1,22 @@
-// use crate::schema::lists;
-// use diesel::{AsChangeset, Insertable, Queryable};
-// use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
+use uuid::Uuid;
 
-// #[derive(Debug, Queryable, Serialize)]
-// #[diesel(table_name = lists)]
-// pub struct List {
-//     pub id: i32,
-//     pub board_id: i32,
-//     pub name: String,
-//     pub position: i32,
-// }
+#[derive(Serialize, FromRow)]
+pub struct List {
+    pub uuid: Uuid,
+    pub board_uuid: Uuid,
+    pub name: String,
+    pub description: Option<String>,
+    pub deleted: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
 
-// #[derive(Debug, Insertable, Deserialize)]
-// #[diesel(table_name = lists)]
-// pub struct NewList {
-//     pub board_id: i32,
-//     pub name: String,
-//     pub position: i32,
-// }
-
-// #[derive(Debug, AsChangeset, Deserialize)]
-// #[diesel(table_name = lists)]
-// pub struct UpdateList {
-//     pub name: Option<String>,
-//     pub position: Option<i32>,
-// }
+#[derive(Deserialize)]
+pub struct NewList {
+    pub board_uuid: Uuid,
+    pub name: String,
+    pub description: Option<String>,
+}
