@@ -1,5 +1,5 @@
 [package]
-name = "rewind-back"
+name = "rewind-backend"
 version = "0.1.0"
 authors = ["wallago <45556867+wallago@users.noreply.github.com>"]
 edition = "2024"

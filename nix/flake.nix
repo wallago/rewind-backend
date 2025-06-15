@@ -17,14 +17,14 @@
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs;
-              [ postgresql openssl pkg-config ] ++ [ rust ];
+              [ postgresql openssl pkg-config sqlx-cli ] ++ [ rust ];
             shellHook = ''
               export PATH=$PATH:$(pwd)/nix/shell
               echo "
               🐚 Rust dev shell ready!
               Run: cargo build / cargo test / etc.
               Available commands:
-              - reload_db_struct.sh
+              - load_db.sh
               - run_db.sh"
             '';
           };
