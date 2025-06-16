@@ -41,3 +41,9 @@ Accept: application/json
 
 DELETE {{api}}/lists/{{list_uuid}} HTTP/1.1
 Accept: application/json
+
+###
+
+GET {{api}}/lists/{{lists_uuid}}/tasks HTTP/1.1
+Accept: application/json
+
