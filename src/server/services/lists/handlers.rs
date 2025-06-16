@@ -23,6 +23,16 @@ pub async fn create_list(pool: web::Data<DbPool>, new_list: web::Json<NewList>) 
     }
 }
 
+pub async fn list_tasks_for_list(
+    pool: web::Data<DbPool>,
+    list_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::list_all_tasks_for_list(&pool, list_uuid.into_inner()).await {
+        Ok(tasks) => HttpResponse::Ok().json(tasks),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 // pub async fn update_task(
 //     pool: web::Data<DbPool>,
 //     task_uuid: web::Path<String>,
