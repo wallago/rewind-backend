@@ -1,9 +1,13 @@
-GET {{API_URL}}/tasks HTTP/1.1
+@api = {{API_URL}} 
+
+###
+
+GET {{api}}/tasks HTTP/1.1
 Accept: application/json
 
 ###
 
-POST {{API_URL}}/tasks HTTP/1.1
+POST {{api}}/tasks HTTP/1.1
 Content-Type: application/json
 
 {
@@ -13,19 +17,20 @@ Content-Type: application/json
   "list_uuid": "7821fc0f-c6f5-4827-ae5b-58bdffa2cab5"
 }
 
+# @lang lua
 > {%
-  const data = JSON.parse(response.body);
-  client.global.set("UUID", data.uuid);
+  local body = vim.fn.json_decode(response.body)
+  client.global.set("task_uuid", body["uuid"])
 %}
 
 ###
 
-GET {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+GET {{api}}/tasks/{{task_uuid}} HTTP/1.1
 Accept: application/json
 
 ###
 
-PUT {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+PUT {{api}}/tasks/{{task_uuid}} HTTP/1.1
 Content-Type: application/json
 Accept: application/json
 
@@ -34,12 +39,7 @@ Accept: application/json
   "status": "Done"
 }
 
-> {%
-  const data = JSON.parse(response.body);
-  client.global.set("UUID", data.uuid);
-%}
-
 ###
 
-DELETE {{API_URL}}/tasks/{{UUID}} HTTP/1.1
+DELETE {{api}}/tasks/{{task_uuid}} HTTP/1.1
 Accept: application/json
