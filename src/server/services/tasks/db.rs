@@ -29,18 +29,24 @@ pub async fn list_all_tasks(pool: &DbPool) -> Result<Vec<Task>> {
 // }
 
 pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Task> {
-    let rec = sqlx::query_as::<_, Task>(
+    let rec = sqlx::query_as!(
+        Task,
         r#"
             INSERT INTO tasks (list_uuid, name, description, status, position)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING *
+            RETURNING
+                uuid, list_uuid, name, description,
+                status as "status: Status",
+                position, deleted,
+                created_at, updated_at,
+                deadline, start_date, finish_date
         "#,
+        new_task.list_uuid,
+        new_task.name,
+        new_task.description,
+        new_task.status as Status,
+        new_task.position
     )
-    .bind(new_task.list_uuid)
-    .bind(new_task.name)
-    .bind(new_task.description)
-    .bind(new_task.status) // your enum here
-    .bind(new_task.position)
     .fetch_one(pool)
     .await?;
     Ok(rec)

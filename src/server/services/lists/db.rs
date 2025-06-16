@@ -7,7 +7,7 @@ use crate::{
     config::DbPool,
     models::{
         lists::{List, NewList},
-        tasks::Task,
+        tasks::{Status, Task},
     },
 };
 
@@ -35,16 +35,17 @@ pub async fn list_all_lists(pool: &DbPool) -> Result<Vec<List>> {
 // }
 
 pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
-    let rec = sqlx::query_as::<_, List>(
+    let rec = sqlx::query_as!(
+        List,
         r#"
             INSERT INTO lists (board_uuid, name, description)
             VALUES ($1, $2, $3)
             RETURNING *
         "#,
+        new_list.board_uuid,
+        new_list.name,
+        new_list.description
     )
-    .bind(new_list.board_uuid)
-    .bind(new_list.name)
-    .bind(new_list.description)
     .fetch_one(pool)
     .await?;
     Ok(rec)
@@ -52,7 +53,8 @@ pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
 
 pub async fn list_all_tasks_for_list(pool: &DbPool, list_uuid: String) -> Result<Vec<Task>> {
     let uuid = Uuid::from_str(&list_uuid)?;
-    let recs = sqlx::query_as::<_, Task>(
+    let recs = sqlx::query_as!(
+        Task,
         r#"
             SELECT
                 uuid, list_uuid, name, description, status as "status: Status", position, deleted,
@@ -61,8 +63,8 @@ pub async fn list_all_tasks_for_list(pool: &DbPool, list_uuid: String) -> Result
             WHERE list_uuid = $1
             ORDER BY created_at
         "#,
+        uuid
     )
-    .bind(uuid)
     .fetch_all(pool)
     .await?;
     Ok(recs)

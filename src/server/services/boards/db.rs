@@ -33,15 +33,16 @@ pub async fn list_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
 // }
 
 pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
-    let rec = sqlx::query_as::<_, Board>(
+    let rec = sqlx::query_as!(
+        Board,
         r#"
             INSERT INTO boards (name, description)
             VALUES ($1, $2)
             RETURNING *
         "#,
+        new_board.name,
+        new_board.description
     )
-    .bind(new_board.name)
-    .bind(new_board.description)
     .fetch_one(pool)
     .await?;
     Ok(rec)
@@ -49,7 +50,8 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
 
 pub async fn list_all_lists_for_board(pool: &DbPool, board_uuid: String) -> Result<Vec<List>> {
     let uuid = Uuid::from_str(&board_uuid)?;
-    let recs = sqlx::query_as::<_, List>(
+    let recs = sqlx::query_as!(
+        List,
         r#"
             SELECT
                 uuid, board_uuid, name, description, deleted,
@@ -58,8 +60,8 @@ pub async fn list_all_lists_for_board(pool: &DbPool, board_uuid: String) -> Resu
             WHERE board_uuid = $1
             ORDER BY created_at
         "#,
+        uuid
     )
-    .bind(uuid)
     .fetch_all(pool)
     .await?;
     Ok(recs)
