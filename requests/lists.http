@@ -44,6 +44,6 @@ Accept: application/json
 
 ###
 
-GET {{api}}/lists/{{lists_uuid}}/tasks HTTP/1.1
+GET {{api}}/lists/{{list_uuid}}/tasks HTTP/1.1
 Accept: application/json
 

@@ -44,6 +44,6 @@ Accept: application/json
 
 ###
 
-GET {{api}}/boards/{{uuid}}/lists HTTP/1.1
+GET {{api}}/boards/{{board_uuid}}/lists HTTP/1.1
 Accept: application/json
 

@@ -14,7 +14,7 @@ Content-Type: application/json
   "status": "Todo",
   "name": "Joe Doe",
   "position": 1,
-  "list_uuid": "7821fc0f-c6f5-4827-ae5b-58bdffa2cab5"
+  "list_uuid": "{{list_uuid}}"
 }
 
 # @lang lua
