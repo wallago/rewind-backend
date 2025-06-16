@@ -1,8 +1,12 @@
+use std::str::FromStr;
+
 use anyhow::Result;
+use uuid::Uuid;
 
 use crate::{
     config::DbPool,
     models::boards::{Board, NewBoard},
+    models::lists::List,
 };
 
 pub async fn list_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
@@ -41,6 +45,24 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
     .fetch_one(pool)
     .await?;
     Ok(rec)
+}
+
+pub async fn list_all_lists_for_board(pool: &DbPool, board_uuid: String) -> Result<Vec<List>> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let recs = sqlx::query_as::<_, List>(
+        r#"
+            SELECT
+                uuid, board_uuid, name, description, deleted,
+                created_at, updated_at 
+            FROM lists
+            WHERE board_uuid = $1
+            ORDER BY created_at
+        "#,
+    )
+    .bind(uuid)
+    .fetch_all(pool)
+    .await?;
+    Ok(recs)
 }
 
 // pub fn update_task(pool: &DbPool, task_uuid: String, mut updated_task: UpdateTask) -> Result<Task> {

@@ -26,6 +26,16 @@ pub async fn create_board(
     }
 }
 
+pub async fn list_lists_for_board(
+    pool: web::Data<DbPool>,
+    board_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::list_all_lists_for_board(&pool, board_uuid.into_inner()).await {
+        Ok(lists) => HttpResponse::Ok().json(lists),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 // pub async fn update_task(
 //     pool: web::Data<DbPool>,
 //     task_uuid: web::Path<String>,
