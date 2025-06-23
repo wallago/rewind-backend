@@ -1,5 +1,8 @@
 use super::db;
-use crate::{config::DbPool, models::boards::NewBoard};
+use crate::{
+    config::DbPool,
+    models::boards::{NewBoard, UpdateBoard},
+};
 use actix_web::{HttpResponse, Responder, web};
 
 pub async fn list_boards(pool: web::Data<DbPool>) -> impl Responder {
@@ -9,12 +12,12 @@ pub async fn list_boards(pool: web::Data<DbPool>) -> impl Responder {
     }
 }
 
-// pub async fn get_task(pool: web::Data<DbPool>, task_uuid: web::Path<String>) -> impl Responder {
-//     match db::get_task_by_uuid(&pool, task_uuid.into_inner()) {
-//         Ok(task) => HttpResponse::Ok().json(task),
-//         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-//     }
-// }
+pub async fn get_board(pool: web::Data<DbPool>, board_uuid: web::Path<String>) -> impl Responder {
+    match db::get_board_by_uuid(&pool, board_uuid.into_inner()).await {
+        Ok(board) => HttpResponse::Ok().json(board),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
 
 pub async fn create_board(
     pool: web::Data<DbPool>,
@@ -36,21 +39,25 @@ pub async fn list_lists_for_board(
     }
 }
 
-// pub async fn update_task(
-//     pool: web::Data<DbPool>,
-//     task_uuid: web::Path<String>,
-//     updated_task: web::Json<UpdateTask>,
-// ) -> impl Responder {
-//     match db::update_task(&pool, task_uuid.into_inner(), updated_task.into_inner()) {
-//         Ok(task) => HttpResponse::Ok().json(task),
-//         Err(_) => HttpResponse::InternalServerError().finish(),
-//     }
-// }
+pub async fn update_board(
+    pool: web::Data<DbPool>,
+    board_uuid: web::Path<String>,
+    updated_board: web::Json<UpdateBoard>,
+) -> impl Responder {
+    match db::update_board(&pool, board_uuid.into_inner(), updated_board.into_inner()).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Board not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
 
-// pub async fn delete_task(pool: web::Data<DbPool>, task_uuid: web::Path<String>) -> impl Responder {
-//     match db::delete_task(&pool, task_uuid.into_inner()) {
-//         Ok(affected) if affected > 0 => HttpResponse::NoContent().finish(),
-//         Ok(_) => HttpResponse::NotFound().body("Task not found"),
-//         Err(_) => HttpResponse::InternalServerError().finish(),
-//     }
-// }
+pub async fn delete_board(
+    pool: web::Data<DbPool>,
+    board_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::delete_board(&pool, board_uuid.into_inner()).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Board not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}

@@ -18,3 +18,9 @@ pub struct NewBoard {
     pub name: String,
     pub description: Option<String>,
 }
+
+#[derive(Deserialize)]
+pub struct UpdateBoard {
+    pub name: Option<String>,
+    pub description: Option<String>,
+}

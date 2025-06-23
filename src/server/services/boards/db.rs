@@ -5,8 +5,10 @@ use uuid::Uuid;
 
 use crate::{
     config::DbPool,
-    models::boards::{Board, NewBoard},
-    models::lists::List,
+    models::{
+        boards::{Board, NewBoard, UpdateBoard},
+        lists::List,
+    },
 };
 
 pub async fn list_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
@@ -25,12 +27,24 @@ pub async fn list_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
     Ok(recs)
 }
 
-// pub fn get_task_by_uuid(pool: &DbPool, task_uuid: String) -> Result<Task> {
-//     let mut conn = pool.get()?;
-//     // Ok(tasks::table
-//     //     .filter(tasks::dsl::uuid.eq(task_uuid))
-//     //     .first::<Task>(&mut *conn)?)
-// }
+pub async fn get_board_by_uuid(pool: &DbPool, board_uuid: String) -> Result<Board> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let rec = sqlx::query_as!(
+        Board,
+        r#"
+            SELECT
+                uuid, name, description, deleted,
+                created_at, updated_at 
+            FROM boards
+            WHERE uuid = $1
+        "#,
+        uuid
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec)
+}
 
 pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
     let rec = sqlx::query_as!(
@@ -67,19 +81,41 @@ pub async fn list_all_lists_for_board(pool: &DbPool, board_uuid: String) -> Resu
     Ok(recs)
 }
 
-// pub fn update_task(pool: &DbPool, task_uuid: String, mut updated_task: UpdateTask) -> Result<Task> {
-//     let mut conn = pool.get()?;
-//     updated_task.updated_at = Some(Utc::now().to_string());
-//     diesel::update(tasks::table)
-//         .filter(tasks::dsl::uuid.eq(&task_uuid))
-//         .set(&updated_task)
-//         .execute(&mut *conn)?;
-//     get_task_by_uuid(pool, task_uuid)
-// }
+pub async fn update_board(
+    pool: &DbPool,
+    board_uuid: String,
+    updated_board: UpdateBoard,
+) -> Result<bool> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let rows_affected = sqlx::query!(
+        r#"
+            UPDATE boards
+            SET name = $1, description = $2
+            WHERE uuid = $3
+        "#,
+        updated_board.name,
+        updated_board.description,
+        uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
 
-// pub fn delete_task(pool: &DbPool, task_uuid: String) -> Result<usize> {
-//     let mut conn = pool.get()?;
-//     Ok(diesel::delete(tasks::table)
-//         .filter(tasks::dsl::uuid.eq(task_uuid))
-//         .execute(&mut *conn)?)
-// }
+    Ok(rows_affected > 0)
+}
+
+pub async fn delete_board(pool: &DbPool, board_uuid: String) -> Result<bool> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let rows_affected = sqlx::query!(
+        r#"
+            DELETE FROM boards
+            WHERE uuid = $1
+        "#,
+        uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows_affected > 0)
+}
