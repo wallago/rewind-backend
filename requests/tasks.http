@@ -36,7 +36,9 @@ Accept: application/json
 
 {
   "name": "Buy milk",
-  "status": "Done"
+  "status": "Done",
+  "position": null,
+  "description": null
 }
 
 ###
