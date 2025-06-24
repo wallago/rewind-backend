@@ -3,14 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "status")]
-#[sqlx(rename_all = "snake_case")]
-pub enum Status {
-    Todo = 0,
-    InProgress = 1,
-    Done = 2,
-}
+use super::{priorities::Priorities, status::Status};
 
 #[derive(Serialize, FromRow)]
 pub struct Task {
@@ -19,6 +12,7 @@ pub struct Task {
     pub name: String,
     pub description: Option<String>,
     pub status: Status,
+    pub priority: Priorities,
     pub position: i32,
     pub deleted: bool,
     pub created_at: DateTime<Utc>,
@@ -34,6 +28,7 @@ pub struct NewTask {
     pub name: String,
     pub description: Option<String>,
     pub status: Status,
+    pub priority: Priorities,
     pub position: i32,
 }
 
@@ -43,4 +38,5 @@ pub struct UpdateTask {
     pub description: Option<String>,
     pub position: Option<i32>,
     pub status: Option<Status>,
+    pub priority: Option<Priorities>,
 }

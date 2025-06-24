@@ -6,21 +6,18 @@ use uuid::Uuid;
 
 use crate::{
     config::DbPool,
-    models::{
-        boards::{Board, NewBoard, UpdateBoard},
-        lists::List,
-    },
+    models::boards::{Board, NewBoard, UpdateBoard},
 };
 
-pub async fn list_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
+pub async fn get_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
     let recs = sqlx::query_as!(
         Board,
         r#"
             SELECT
-                uuid, name, description, deleted,
-                created_at, updated_at 
+                uuid, 
+                name, description, position, deleted,
+                created_at, updated_at
             FROM boards
-            ORDER BY created_at
         "#
     )
     .fetch_all(pool)
@@ -34,7 +31,8 @@ pub async fn get_board_by_uuid(pool: &DbPool, board_uuid: String) -> Result<Boar
         Board,
         r#"
             SELECT
-                uuid, name, description, deleted,
+                uuid, 
+                name, description, position, deleted,
                 created_at, updated_at 
             FROM boards
             WHERE uuid = $1
@@ -51,35 +49,17 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
     let rec = sqlx::query_as!(
         Board,
         r#"
-            INSERT INTO boards (name, description)
-            VALUES ($1, $2)
+            INSERT INTO boards (name, description, position)
+            VALUES ($1, $2, $3)
             RETURNING *
         "#,
         new_board.name,
-        new_board.description
+        new_board.description,
+        new_board.position
     )
     .fetch_one(pool)
     .await?;
     Ok(rec)
-}
-
-pub async fn list_all_lists_for_board(pool: &DbPool, board_uuid: String) -> Result<Vec<List>> {
-    let uuid = Uuid::from_str(&board_uuid)?;
-    let recs = sqlx::query_as!(
-        List,
-        r#"
-            SELECT
-                uuid, board_uuid, name, description, deleted,
-                created_at, updated_at 
-            FROM lists
-            WHERE board_uuid = $1
-            ORDER BY created_at
-        "#,
-        uuid
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(recs)
 }
 
 pub async fn update_board(
@@ -102,6 +82,13 @@ pub async fn update_board(
         separated
             .push("description = ")
             .push_bind_unseparated(description);
+        any_field = true;
+    }
+
+    if let Some(position) = &updated_board.position {
+        separated
+            .push("position = ")
+            .push_bind_unseparated(position);
         any_field = true;
     }
 

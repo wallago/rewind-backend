@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{HttpResponse, Responder, web};
 
 pub async fn list_boards(pool: web::Data<DbPool>) -> impl Responder {
-    match db::list_all_boards(&pool).await {
+    match db::get_all_boards(&pool).await {
         Ok(boards) => HttpResponse::Ok().json(boards),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
@@ -25,16 +25,6 @@ pub async fn create_board(
 ) -> impl Responder {
     match db::insert_board(&pool, new_board.into_inner()).await {
         Ok(board) => HttpResponse::Ok().json(board),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-    }
-}
-
-pub async fn list_lists_for_board(
-    pool: web::Data<DbPool>,
-    board_uuid: web::Path<String>,
-) -> impl Responder {
-    match db::list_all_lists_for_board(&pool, board_uuid.into_inner()).await {
-        Ok(lists) => HttpResponse::Ok().json(lists),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

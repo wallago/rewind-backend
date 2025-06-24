@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{HttpResponse, Responder, web};
 
 pub async fn list_tasks(pool: web::Data<DbPool>) -> impl Responder {
-    match db::list_all_tasks(&pool).await {
+    match db::get_all_tasks(&pool).await {
         Ok(tasks) => HttpResponse::Ok().json(tasks),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
@@ -42,6 +42,16 @@ pub async fn delete_task(pool: web::Data<DbPool>, task_uuid: web::Path<String>) 
     match db::delete_task(&pool, task_uuid.into_inner()).await {
         Ok(true) => HttpResponse::NoContent().finish(),
         Ok(false) => HttpResponse::NotFound().body("Task not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+pub async fn list_tasks_for_list(
+    pool: web::Data<DbPool>,
+    list_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::get_tasks_by_list_uuid(&pool, list_uuid.into_inner()).await {
+        Ok(tasks) => HttpResponse::Ok().json(tasks),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

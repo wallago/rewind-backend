@@ -6,21 +6,18 @@ use uuid::Uuid;
 
 use crate::{
     config::DbPool,
-    models::{
-        lists::{List, NewList, UpdateList},
-        tasks::{Status, Task},
-    },
+    models::lists::{List, NewList, UpdateList},
 };
 
-pub async fn list_all_lists(pool: &DbPool) -> Result<Vec<List>> {
+pub async fn get_all_lists(pool: &DbPool) -> Result<Vec<List>> {
     let recs = sqlx::query_as!(
         List,
         r#"
             SELECT
-                uuid, board_uuid, name, description, deleted,
+                uuid, board_uuid, 
+                name, description, position, deleted,
                 created_at, updated_at 
             FROM lists
-            ORDER BY created_at
         "#
     )
     .fetch_all(pool)
@@ -34,10 +31,32 @@ pub async fn get_list_by_uuid(pool: &DbPool, list_uuid: String) -> Result<List> 
         List,
         r#"
             SELECT
-                uuid, board_uuid, name, description, deleted,
+                uuid, board_uuid, 
+                name, description, position, deleted,
                 created_at, updated_at 
             FROM lists
             WHERE uuid = $1
+        "#,
+        uuid
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(rec)
+}
+
+pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Result<List> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let rec = sqlx::query_as!(
+        List,
+        r#"
+            SELECT
+                uuid, board_uuid, 
+                name, description, 
+                position, deleted,
+                created_at, updated_at 
+            FROM lists
+            WHERE board_uuid = $1
         "#,
         uuid
     )
@@ -51,36 +70,18 @@ pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
     let rec = sqlx::query_as!(
         List,
         r#"
-            INSERT INTO lists (board_uuid, name, description)
-            VALUES ($1, $2, $3)
+            INSERT INTO lists (board_uuid, name, description, position)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
         "#,
         new_list.board_uuid,
         new_list.name,
-        new_list.description
+        new_list.description,
+        new_list.position
     )
     .fetch_one(pool)
     .await?;
     Ok(rec)
-}
-
-pub async fn list_all_tasks_for_list(pool: &DbPool, list_uuid: String) -> Result<Vec<Task>> {
-    let uuid = Uuid::from_str(&list_uuid)?;
-    let recs = sqlx::query_as!(
-        Task,
-        r#"
-            SELECT
-                uuid, list_uuid, name, description, status as "status: Status", position, deleted,
-                created_at, updated_at, deadline, start_date, finish_date
-            FROM tasks
-            WHERE list_uuid = $1
-            ORDER BY created_at
-        "#,
-        uuid
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(recs)
 }
 
 pub async fn update_list(
@@ -104,6 +105,13 @@ pub async fn update_list(
             .push("description = ")
             .push_bind_unseparated(description);
         any_field = true
+    }
+
+    if let Some(position) = &updated_list.position {
+        separated
+            .push("position = ")
+            .push_bind_unseparated(position);
+        any_field = true;
     }
 
     if !any_field {

@@ -12,4 +12,4 @@ CREATE TABLE boards (
 );
 
 -- Indexes 
-CREATE INDEX idx_boards_position ON lists (position);
+CREATE INDEX idx_boards_position ON boards (position);

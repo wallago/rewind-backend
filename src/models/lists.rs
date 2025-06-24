@@ -9,6 +9,7 @@ pub struct List {
     pub board_uuid: Uuid,
     pub name: String,
     pub description: Option<String>,
+    pub position: i32,
     pub deleted: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -19,10 +20,12 @@ pub struct NewList {
     pub board_uuid: Uuid,
     pub name: String,
     pub description: Option<String>,
+    pub position: i32,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateList {
     pub name: Option<String>,
     pub description: Option<String>,
+    pub position: Option<i32>,
 }
