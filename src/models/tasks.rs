@@ -3,6 +3,15 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "status")]
+#[sqlx(rename_all = "snake_case")]
+pub enum Status {
+    Todo = 0,
+    InProgress = 1,
+    Done = 2,
+}
+
 #[derive(Serialize, FromRow)]
 pub struct Task {
     pub uuid: Uuid,
@@ -28,11 +37,10 @@ pub struct NewTask {
     pub position: i32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "status")]
-#[sqlx(rename_all = "snake_case")]
-pub enum Status {
-    Todo = 0,
-    InProgress = 1,
-    Done = 2,
+#[derive(Deserialize)]
+pub struct UpdateTask {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub position: Option<i32>,
+    pub status: Option<Status>,
 }
