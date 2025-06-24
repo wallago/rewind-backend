@@ -20,3 +20,9 @@ pub struct NewList {
     pub name: String,
     pub description: Option<String>,
 }
+
+#[derive(Deserialize)]
+pub struct UpdateList {
+    pub name: Option<String>,
+    pub description: Option<String>,
+}

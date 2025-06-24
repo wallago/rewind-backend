@@ -12,7 +12,7 @@ pub fn services() -> Scope {
             "/{uuid}/tasks",
             web::get().to(handlers::list_tasks_for_list),
         )
-    // .route("/{id}", web::get().to(handlers::get_task))
-    // .route("/{id}", web::put().to(handlers::update_task))
-    // .route("/{id}", web::delete().to(handlers::delete_task))
+        .route("/{id}", web::get().to(handlers::get_list))
+        .route("/{id}", web::put().to(handlers::update_list))
+        .route("/{id}", web::delete().to(handlers::delete_list))
 }
