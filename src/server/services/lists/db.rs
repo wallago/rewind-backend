@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::Result;
+use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
 
 use crate::{
@@ -88,19 +89,31 @@ pub async fn update_list(
     updated_list: UpdateList,
 ) -> Result<bool> {
     let uuid = Uuid::from_str(&list_uuid)?;
-    let rows_affected = sqlx::query!(
-        r#"
-            UPDATE lists
-            SET name = $1, description = $2
-            WHERE uuid = $3
-        "#,
-        updated_list.name,
-        updated_list.description,
-        uuid
-    )
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let mut any_field = false;
+
+    let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE lists SET ");
+    let mut separated = builder.separated(", ");
+
+    if let Some(name) = &updated_list.name {
+        separated.push("name = ").push_bind_unseparated(name);
+        any_field = true
+    }
+
+    if let Some(description) = &updated_list.description {
+        separated
+            .push("description = ")
+            .push_bind_unseparated(description);
+        any_field = true
+    }
+
+    if !any_field {
+        return Ok(false);
+    }
+
+    builder.push(" WHERE uuid = ").push_bind(uuid);
+
+    let query = builder.build();
+    let rows_affected = query.execute(pool).await?.rows_affected();
 
     Ok(rows_affected > 0)
 }

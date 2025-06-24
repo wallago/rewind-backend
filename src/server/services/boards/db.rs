@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::Result;
+use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
 
 use crate::{
@@ -87,19 +88,31 @@ pub async fn update_board(
     updated_board: UpdateBoard,
 ) -> Result<bool> {
     let uuid = Uuid::from_str(&board_uuid)?;
-    let rows_affected = sqlx::query!(
-        r#"
-            UPDATE boards
-            SET name = $1, description = $2
-            WHERE uuid = $3
-        "#,
-        updated_board.name,
-        updated_board.description,
-        uuid
-    )
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let mut any_field = false;
+
+    let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE boards SET ");
+    let mut separated = builder.separated(", ");
+
+    if let Some(name) = &updated_board.name {
+        separated.push("name = ").push_bind_unseparated(name);
+        any_field = true;
+    }
+
+    if let Some(description) = &updated_board.description {
+        separated
+            .push("description = ")
+            .push_bind_unseparated(description);
+        any_field = true;
+    }
+
+    if !any_field {
+        return Ok(false);
+    }
+
+    builder.push(" WHERE uuid = ").push_bind(uuid);
+
+    let query = builder.build();
+    let rows_affected = query.execute(pool).await?.rows_affected();
 
     Ok(rows_affected > 0)
 }

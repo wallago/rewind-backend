@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::Result;
+use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
 
 use crate::{
@@ -76,21 +77,43 @@ pub async fn update_task(
     updated_task: UpdateTask,
 ) -> Result<bool> {
     let uuid = Uuid::from_str(&task_uuid)?;
-    let rows_affected = sqlx::query!(
-        r#"
-            UPDATE tasks
-            SET name = $1, description = $2, status = $3, position = $4
-            WHERE uuid = $5
-        "#,
-        updated_task.name,
-        updated_task.description,
-        updated_task.status as Option<Status>,
-        updated_task.position,
-        uuid
-    )
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let mut any_field = false;
+
+    let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE tasks SET ");
+    let mut separated = builder.separated(",");
+
+    if let Some(name) = &updated_task.name {
+        separated.push("name = ").push_bind_unseparated(name);
+        any_field = true;
+    }
+
+    if let Some(description) = &updated_task.description {
+        separated
+            .push("description = ")
+            .push_bind_unseparated(description);
+        any_field = true;
+    }
+
+    if let Some(status) = &updated_task.status {
+        separated.push("status = ").push_bind_unseparated(status);
+        any_field = true;
+    }
+
+    if let Some(position) = &updated_task.position {
+        separated
+            .push("position = ")
+            .push_bind_unseparated(position);
+        any_field = true;
+    }
+
+    if !any_field {
+        return Ok(false);
+    }
+
+    builder.push(" WHERE uuid = ").push_bind(uuid);
+
+    let query = builder.build();
+    let rows_affected = query.execute(pool).await?.rows_affected();
 
     Ok(rows_affected > 0)
 }
