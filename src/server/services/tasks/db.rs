@@ -25,6 +25,7 @@ pub async fn get_all_tasks(pool: &DbPool) -> Result<Vec<Task>> {
                 created_at, updated_at, 
                 deadline, start_date, finish_date            
             FROM tasks
+            ORDER BY position
         "#
     )
     .fetch_all(pool)
@@ -55,9 +56,9 @@ pub async fn get_task_by_uuid(pool: &DbPool, task_uuid: String) -> Result<Task> 
     Ok(rec)
 }
 
-pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<Task> {
+pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<Vec<Task>> {
     let uuid = Uuid::from_str(&list_uuid)?;
-    let rec = sqlx::query_as!(
+    let recs = sqlx::query_as!(
         Task,
         r#"
             SELECT
@@ -70,13 +71,14 @@ pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<
                 deadline, start_date, finish_date
             FROM tasks
             WHERE list_uuid = $1
+            ORDER BY position
         "#,
         uuid
     )
-    .fetch_one(pool)
+    .fetch_all(pool)
     .await?;
 
-    Ok(rec)
+    Ok(recs)
 }
 
 pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Task> {
@@ -171,6 +173,57 @@ pub async fn delete_task(pool: &DbPool, task_uuid: String) -> Result<bool> {
     .execute(pool)
     .await?
     .rows_affected();
+
+    Ok(rows_affected > 0)
+}
+
+pub async fn switch_tasks_position(
+    pool: &DbPool,
+    task_uuid_from: String,
+    task_uuid_to: String,
+) -> Result<bool> {
+    if task_uuid_to == task_uuid_from {
+        return Ok(true);
+    }
+
+    let task_from = get_task_by_uuid(pool, task_uuid_from).await?;
+    let task_to = get_task_by_uuid(pool, task_uuid_to).await?;
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE tasks SET position = -1 WHERE uuid = $1"#,
+        task_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE tasks SET position = $1 WHERE uuid = $2"#,
+        task_from.position,
+        task_to.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE tasks SET position = $1 WHERE uuid = $2"#,
+        task_to.position,
+        task_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    tracing::info!("{rows_affected}");
 
     Ok(rows_affected > 0)
 }

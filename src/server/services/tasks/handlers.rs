@@ -55,3 +55,15 @@ pub async fn list_tasks_for_list(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+pub async fn switch_tasks(
+    pool: web::Data<DbPool>,
+    tasks_uuid: web::Json<(String, String)>,
+) -> impl Responder {
+    let (task_uuid_from, task_uuid_to) = tasks_uuid.into_inner();
+    match db::switch_tasks_position(&pool, task_uuid_from, task_uuid_to).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Task not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
