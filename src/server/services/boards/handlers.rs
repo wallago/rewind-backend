@@ -51,3 +51,15 @@ pub async fn delete_board(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+pub async fn switch_boards(
+    pool: web::Data<DbPool>,
+    boards_uuid: web::Json<(String, String)>,
+) -> impl Responder {
+    let (board_uuid_from, board_uuid_to) = boards_uuid.into_inner();
+    match db::switch_boards_position(&pool, board_uuid_from, board_uuid_to).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Board not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}

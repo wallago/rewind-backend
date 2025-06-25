@@ -18,6 +18,7 @@ pub async fn get_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
                 name, description, position, deleted,
                 created_at, updated_at
             FROM boards
+            ORDER BY position
         "#
     )
     .fetch_all(pool)
@@ -116,6 +117,57 @@ pub async fn delete_board(pool: &DbPool, board_uuid: String) -> Result<bool> {
     .execute(pool)
     .await?
     .rows_affected();
+
+    Ok(rows_affected > 0)
+}
+
+pub async fn switch_boards_position(
+    pool: &DbPool,
+    board_uuid_from: String,
+    board_uuid_to: String,
+) -> Result<bool> {
+    if board_uuid_to == board_uuid_from {
+        return Ok(true);
+    }
+
+    let board_from = get_board_by_uuid(pool, board_uuid_from).await?;
+    let board_to = get_board_by_uuid(pool, board_uuid_to).await?;
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE boards SET position = -1 WHERE uuid = $1"#,
+        board_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE boards SET position = $1 WHERE uuid = $2"#,
+        board_from.position,
+        board_to.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE boards SET position = $1 WHERE uuid = $2"#,
+        board_to.position,
+        board_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    tracing::info!("{rows_affected}");
 
     Ok(rows_affected > 0)
 }
