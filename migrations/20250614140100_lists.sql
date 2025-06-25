@@ -10,7 +10,7 @@ CREATE TABLE lists (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (board_uuid, position),
-  CHECK (position >= 0)
+  CHECK (position >= -1)
 );
 
 -- Indexes

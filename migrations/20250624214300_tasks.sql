@@ -15,7 +15,7 @@ CREATE TABLE tasks (
   start_date TIMESTAMPTZ,
   finish_date TIMESTAMPTZ,
   UNIQUE (list_uuid, position),
-  CHECK (position >= 0),
+  CHECK (position >= -1),
   CHECK (
     (
       start_date IS NULL
