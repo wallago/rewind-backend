@@ -14,8 +14,8 @@ pub fn services() -> Scope {
             "/{uuid}/lists",
             web::get().to(lists::handlers::list_lists_for_board),
         )
-        .route("/switch", web::put().to(handlers::switch_boards))
         .route("/{uuid}", web::get().to(handlers::get_board))
+        .route("/switch", web::put().to(handlers::switch_boards))
         .route("/{uuid}", web::put().to(handlers::update_board))
         .route("/{uuid}", web::delete().to(handlers::delete_board))
 }
