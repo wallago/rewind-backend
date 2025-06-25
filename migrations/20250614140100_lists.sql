@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE lists (
   uuid UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-  board_uuid UUID NOT NULL REFERENCES boards (uuid),
+  board_uuid UUID NOT NULL REFERENCES boards (uuid) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   position INT NOT NULL DEFAULT 0,
