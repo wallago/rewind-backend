@@ -12,7 +12,8 @@ Content-Type: application/json
 
 {
   "name": "Joe Doe",
-  "board_uuid": "{{board_uuid}}" 
+  "board_uuid": "{{board_uuid}}" ,
+  "position": 0 
 }
 
 # @lang lua
@@ -34,7 +35,7 @@ Accept: application/json
 
 {
   "name": "Buy milk",
-  "status": "Done"
+  "position": null
 }
 
 ###

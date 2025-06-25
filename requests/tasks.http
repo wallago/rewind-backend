@@ -12,6 +12,7 @@ Content-Type: application/json
 
 {
   "status": "Todo",
+  "priority": "Medium",
   "name": "Joe Doe",
   "position": 1,
   "list_uuid": "{{list_uuid}}"
