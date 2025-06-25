@@ -55,3 +55,15 @@ pub async fn list_lists_for_board(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+pub async fn switch_lists(
+    pool: web::Data<DbPool>,
+    lists_uuid: web::Json<(String, String)>,
+) -> impl Responder {
+    let (list_uuid_from, list_uuid_to) = lists_uuid.into_inner();
+    match db::switch_lists_position(&pool, list_uuid_from, list_uuid_to).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("List not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}

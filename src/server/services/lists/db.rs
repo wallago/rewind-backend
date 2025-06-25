@@ -18,6 +18,7 @@ pub async fn get_all_lists(pool: &DbPool) -> Result<Vec<List>> {
                 name, description, position, deleted,
                 created_at, updated_at 
             FROM lists
+            ORDER BY position
         "#
     )
     .fetch_all(pool)
@@ -45,9 +46,9 @@ pub async fn get_list_by_uuid(pool: &DbPool, list_uuid: String) -> Result<List> 
     Ok(rec)
 }
 
-pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Result<List> {
+pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Result<Vec<List>> {
     let uuid = Uuid::from_str(&board_uuid)?;
-    let rec = sqlx::query_as!(
+    let recs = sqlx::query_as!(
         List,
         r#"
             SELECT
@@ -57,13 +58,14 @@ pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Resul
                 created_at, updated_at 
             FROM lists
             WHERE board_uuid = $1
+            ORDER BY position
         "#,
         uuid
     )
-    .fetch_one(pool)
+    .fetch_all(pool)
     .await?;
 
-    Ok(rec)
+    Ok(recs)
 }
 
 pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
@@ -138,6 +140,57 @@ pub async fn delete_list(pool: &DbPool, list_uuid: String) -> Result<bool> {
     .execute(pool)
     .await?
     .rows_affected();
+
+    Ok(rows_affected > 0)
+}
+
+pub async fn switch_lists_position(
+    pool: &DbPool,
+    list_uuid_from: String,
+    list_uuid_to: String,
+) -> Result<bool> {
+    if list_uuid_to == list_uuid_from {
+        return Ok(true);
+    }
+
+    let list_from = get_list_by_uuid(pool, list_uuid_from).await?;
+    let list_to = get_list_by_uuid(pool, list_uuid_to).await?;
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE lists SET position = -1 WHERE uuid = $1"#,
+        list_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE lists SET position = $1 WHERE uuid = $2"#,
+        list_from.position,
+        list_to.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if rows_affected <= 0 {
+        return Ok(false);
+    }
+
+    let rows_affected = sqlx::query!(
+        r#"UPDATE lists SET position = $1 WHERE uuid = $2"#,
+        list_to.position,
+        list_from.uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    tracing::info!("{rows_affected}");
 
     Ok(rows_affected > 0)
 }
