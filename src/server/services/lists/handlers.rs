@@ -21,7 +21,8 @@ pub async fn get_list(pool: web::Data<DbPool>, list_uuid: web::Path<String>) -> 
 
 pub async fn create_list(pool: web::Data<DbPool>, new_list: web::Json<NewList>) -> impl Responder {
     match db::insert_list(&pool, new_list.into_inner()).await {
-        Ok(list) => HttpResponse::Ok().json(list),
+        Ok(Some(list)) => HttpResponse::Ok().json(list),
+        Ok(None) => HttpResponse::BadRequest().body("Wrong values"),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

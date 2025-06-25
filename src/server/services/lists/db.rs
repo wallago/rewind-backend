@@ -68,7 +68,11 @@ pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Resul
     Ok(recs)
 }
 
-pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
+pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<Option<List>> {
+    if new_list.name.is_empty() || new_list.position < 0 {
+        return Ok(None);
+    }
+
     let rec = sqlx::query_as!(
         List,
         r#"
@@ -83,7 +87,7 @@ pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<List> {
     )
     .fetch_one(pool)
     .await?;
-    Ok(rec)
+    Ok(Some(rec))
 }
 
 pub async fn update_list(
@@ -98,8 +102,10 @@ pub async fn update_list(
     let mut separated = builder.separated(", ");
 
     if let Some(name) = &updated_list.name {
-        separated.push("name = ").push_bind_unseparated(name);
-        any_field = true
+        if !name.is_empty() {
+            separated.push("name = ").push_bind_unseparated(name);
+            any_field = true
+        }
     }
 
     if let Some(description) = &updated_list.description {
@@ -110,10 +116,12 @@ pub async fn update_list(
     }
 
     if let Some(position) = &updated_list.position {
-        separated
-            .push("position = ")
-            .push_bind_unseparated(position);
-        any_field = true;
+        if !position < 0 {
+            separated
+                .push("position = ")
+                .push_bind_unseparated(position);
+            any_field = true;
+        }
     }
 
     if !any_field {

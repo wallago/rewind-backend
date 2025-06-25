@@ -21,7 +21,8 @@ pub async fn get_task(pool: web::Data<DbPool>, task_uuid: web::Path<String>) -> 
 
 pub async fn create_task(pool: web::Data<DbPool>, new_task: web::Json<NewTask>) -> impl Responder {
     match db::insert_task(&pool, new_task.into_inner()).await {
-        Ok(task) => HttpResponse::Ok().json(task),
+        Ok(Some(task)) => HttpResponse::Ok().json(task),
+        Ok(None) => HttpResponse::BadRequest().body("Wrong values"),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

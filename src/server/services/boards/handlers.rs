@@ -24,7 +24,8 @@ pub async fn create_board(
     new_board: web::Json<NewBoard>,
 ) -> impl Responder {
     match db::insert_board(&pool, new_board.into_inner()).await {
-        Ok(board) => HttpResponse::Ok().json(board),
+        Ok(Some(board)) => HttpResponse::Ok().json(board),
+        Ok(None) => HttpResponse::BadRequest().body("Wrong values"),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }

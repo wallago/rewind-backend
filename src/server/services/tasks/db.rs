@@ -81,7 +81,11 @@ pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<
     Ok(recs)
 }
 
-pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Task> {
+pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Option<Task>> {
+    if new_task.name.is_empty() || new_task.position < 0 {
+        return Ok(None);
+    }
+
     let rec = sqlx::query_as!(
         Task,
         r#"
@@ -104,7 +108,7 @@ pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Task> {
     )
     .fetch_one(pool)
     .await?;
-    Ok(rec)
+    Ok(Some(rec))
 }
 
 pub async fn update_task(
@@ -119,8 +123,10 @@ pub async fn update_task(
     let mut separated = builder.separated(",");
 
     if let Some(name) = &updated_task.name {
-        separated.push("name = ").push_bind_unseparated(name);
-        any_field = true;
+        if !name.is_empty() {
+            separated.push("name = ").push_bind_unseparated(name);
+            any_field = true;
+        }
     }
 
     if let Some(description) = &updated_task.description {
@@ -143,10 +149,12 @@ pub async fn update_task(
     }
 
     if let Some(position) = &updated_task.position {
-        separated
-            .push("position = ")
-            .push_bind_unseparated(position);
-        any_field = true;
+        if !position < 0 {
+            separated
+                .push("position = ")
+                .push_bind_unseparated(position);
+            any_field = true;
+        }
     }
 
     if !any_field {

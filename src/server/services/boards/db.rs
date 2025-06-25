@@ -46,7 +46,11 @@ pub async fn get_board_by_uuid(pool: &DbPool, board_uuid: String) -> Result<Boar
     Ok(rec)
 }
 
-pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
+pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Option<Board>> {
+    if new_board.name.is_empty() || new_board.position < 0 {
+        return Ok(None);
+    }
+
     let rec = sqlx::query_as!(
         Board,
         r#"
@@ -60,7 +64,7 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Board> {
     )
     .fetch_one(pool)
     .await?;
-    Ok(rec)
+    Ok(Some(rec))
 }
 
 pub async fn update_board(
@@ -75,8 +79,10 @@ pub async fn update_board(
     let mut separated = builder.separated(", ");
 
     if let Some(name) = &updated_board.name {
-        separated.push("name = ").push_bind_unseparated(name);
-        any_field = true;
+        if !name.is_empty() {
+            separated.push("name = ").push_bind_unseparated(name);
+            any_field = true;
+        }
     }
 
     if let Some(description) = &updated_board.description {
@@ -87,10 +93,12 @@ pub async fn update_board(
     }
 
     if let Some(position) = &updated_board.position {
-        separated
-            .push("position = ")
-            .push_bind_unseparated(position);
-        any_field = true;
+        if !position < 0 {
+            separated
+                .push("position = ")
+                .push_bind_unseparated(position);
+            any_field = true;
+        }
     }
 
     if !any_field {
