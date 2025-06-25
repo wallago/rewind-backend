@@ -23,3 +23,4 @@ uuid = { version = "1.17.0", features = ["serde" ,"v4"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 env_logger = "0.11.8"
 sqlx = { version = "0.8.6", features = ["chrono", "macros", "runtime-tokio", "postgres", "uuid"] }
+regex = "1.11.1"
