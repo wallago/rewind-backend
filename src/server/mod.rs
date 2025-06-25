@@ -23,7 +23,8 @@ pub async fn run() -> Result<()> {
                 web::scope("api")
                     .service(services::boards::routes::services())
                     .service(services::lists::routes::services())
-                    .service(services::tasks::routes::services()),
+                    .service(services::tasks::routes::services())
+                    .service(services::tags::routes::services()),
             )
     })
     .bind(&CONFIG.app.server_url())
