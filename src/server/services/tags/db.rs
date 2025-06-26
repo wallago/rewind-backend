@@ -74,7 +74,7 @@ pub async fn insert_tag(pool: &DbPool, new_tag: NewTag) -> Result<Option<Tag>> {
     }
 
     let re = Regex::new(r"^#[0-9a-fA-F]{6}$")?;
-    if re.is_match(&new_tag.color) {
+    if !re.is_match(&new_tag.color) {
         return Ok(None);
     };
 
