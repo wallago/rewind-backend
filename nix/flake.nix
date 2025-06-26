@@ -17,9 +17,17 @@
         devShells = {
           default = pkgs.mkShell {
             buildInputs = with pkgs;
-              [ postgresql openssl pkg-config sqlx-cli ] ++ [ rust ];
+              [ postgresql openssl pkg-config sqlx-cli sops yq ] ++ [ rust ];
             shellHook = ''
               export PATH=$PATH:$(pwd)/nix/shell
+
+              if [ -f ./nix/secrets.yaml ]; then
+                export DATABASE_URL=$(sops --decrypt ./nix/secrets.yaml | yq -r '.["db"]')
+                echo "Loaded secrets from SOPS into environment"
+              else
+                echo "Secrets not found!"
+              fi
+
               echo "
               🐚 Rust dev shell ready!
               Run: cargo build / cargo test / etc.
