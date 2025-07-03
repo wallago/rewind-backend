@@ -1,0 +1,8 @@
+keys:
+  yubikey: &pgp_keys
+    - &yubikey_001 D0787BA56F51977F
+creation_rules:
+  - path_regex: nix/secrets.ya?ml$
+    key_groups:
+      - pgp:
+          - *yubikey_001 
