@@ -1,0 +1,116 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                uuid, list_uuid, \n                name, description, \n                position, deleted,\n                status as \"status: Status\",\n                priority as \"priority: Priorities\",\n                created_at, updated_at, \n                deadline, start_date, finish_date\n            FROM tasks\n            WHERE list_uuid = $1\n            ORDER BY position\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "uuid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "list_uuid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "position",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "deleted",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "status: Status",
+        "type_info": {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "todo",
+                "in_progress",
+                "done"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "priority: Priorities",
+        "type_info": {
+          "Custom": {
+            "name": "priorities",
+            "kind": {
+              "Enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "deadline",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "start_date",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "finish_date",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "d77d66b2b6ec93333b203c1545116b38618f9c906ac47590e1b676627d507f6e"
+}
