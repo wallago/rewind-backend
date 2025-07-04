@@ -5,6 +5,7 @@ use log_manager::LogManager;
 mod config;
 mod models;
 mod server;
+mod utils;
 
 #[tokio::main]
 async fn main() -> Result<()> {
