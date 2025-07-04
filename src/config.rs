@@ -17,7 +17,7 @@ impl Config {
         Self {
             log_level: load_env("RUST_LOG").unwrap_or("info".to_string()),
             app: Application::from_env(),
-            db: load_env("DATABASE_URL").unwrap_or("postgres://rewind@localhost:5432".to_string()),
+            db: load_env("DATABASE_URL").unwrap_or("postgres://rewind@127.0.0.1:5432".to_string()),
         }
     }
 }
@@ -58,6 +58,6 @@ fn load_env<T: std::str::FromStr>(key: &str) -> Option<T> {
 pub type DbPool = PgPool;
 
 pub async fn init_db_pool() -> Result<DbPool> {
-    tracing::info!("Initialize database connection with {}", CONFIG.db);
+    tracing::info!("Initialize database connection");
     Ok(PgPool::connect(&CONFIG.db).await?)
 }
