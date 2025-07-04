@@ -58,6 +58,6 @@ fn load_env<T: std::str::FromStr>(key: &str) -> Option<T> {
 pub type DbPool = PgPool;
 
 pub async fn init_db_pool() -> Result<DbPool> {
-    tracing::info!("Initialize database connection");
+    tracing::info!("Initialize database connection with {}", CONFIG.db);
     Ok(PgPool::connect(&CONFIG.db).await?)
 }
