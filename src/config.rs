@@ -15,9 +15,9 @@ impl Config {
     fn from_env() -> Self {
         let _ = dotenv();
         Self {
-            log_level: load_env("RUST_LOG"),
+            log_level: load_env("RUST_LOG").unwrap_or("info".to_string()),
             app: Application::from_env(),
-            db: load_env("DATABASE_URL"),
+            db: load_env("DATABASE_URL").unwrap_or("postgres://rewind@localhost:5432".to_string()),
         }
     }
 }
@@ -33,8 +33,8 @@ pub struct Application {
 impl Application {
     fn from_env() -> Self {
         Self {
-            host: load_env("APP_HOST"),
-            port: load_env("APP_PORT"),
+            host: load_env("APP_HOST").unwrap_or("0.0.0.0".to_string()),
+            port: load_env("APP_PORT").unwrap_or("8080".to_string()),
         }
     }
 
@@ -45,11 +45,14 @@ impl Application {
     }
 }
 
-fn load_env<T: std::convert::From<String>>(key: &str) -> T {
-    std::env::var(key).map_or_else(
-        |err| panic!("Failed to load {key} from env ({err})"),
-        From::from,
-    )
+fn load_env<T: std::str::FromStr>(key: &str) -> Option<T> {
+    match std::env::var(key) {
+        Ok(val) => val.parse::<T>().ok(),
+        Err(err) => {
+            tracing::error!("Failed to load {key} from env ({err})");
+            None
+        }
+    }
 }
 
 pub type DbPool = PgPool;
