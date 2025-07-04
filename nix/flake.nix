@@ -31,18 +31,13 @@
             shellHook = ''
               export PATH=$PATH:$(pwd)/nix/shell
 
-              if sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml >/dev/null 2>&1; then
-                export DATABASE_URL=$(sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml | yq -r '.["db"]')
-                echo "Loaded DATABASE_URL from SOPS"
-              else
-                echo "Could not decrypt secrets (GPG locked?)"
-              fi
-
               echo "
               🐚 Rust dev shell ready!
               Run: cargo build / cargo test / etc.
               Available commands:
               - load_db_migration.sh
+              - export DATABASE_URL=\$(sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml | yq -r '.[\"db\"]')
+              "
             '';
           };
         };
