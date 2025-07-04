@@ -12,7 +12,7 @@ Content-Type: application/json
 
 {
   "name": "Joe Doe",
-  "position": 2
+  "position": null
 }
 
 # @lang lua

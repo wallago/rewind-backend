@@ -11,10 +11,10 @@ POST {{api}}/tasks HTTP/1.1
 Content-Type: application/json
 
 {
-  "status": "Todo",
-  "priority": "Medium",
+  "status": null,
+  "priority": null,
   "name": "Joe Doe",
-  "position": 1,
+  "position": null,
   "list_uuid": "{{list_uuid}}"
 }
 
