@@ -27,9 +27,9 @@ pub struct NewTask {
     pub list_uuid: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub status: Status,
-    pub priority: Priorities,
-    pub position: i32,
+    pub status: Option<Status>,
+    pub priority: Option<Priorities>,
+    pub position: Option<i32>,
 }
 
 #[derive(Deserialize)]

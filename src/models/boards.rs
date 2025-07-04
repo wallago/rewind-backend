@@ -18,7 +18,7 @@ pub struct Board {
 pub struct NewBoard {
     pub name: String,
     pub description: Option<String>,
-    pub position: i32,
+    pub position: Option<i32>,
 }
 
 #[derive(Deserialize)]

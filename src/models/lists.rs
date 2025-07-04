@@ -20,7 +20,7 @@ pub struct NewList {
     pub board_uuid: Uuid,
     pub name: String,
     pub description: Option<String>,
-    pub position: i32,
+    pub position: Option<i32>,
 }
 
 #[derive(Deserialize)]
