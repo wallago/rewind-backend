@@ -13,27 +13,36 @@
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
         rust = pkgs.rust-bin.nightly.latest.complete;
+        commonNativeBuildInputs = [ pkgs.pkg-config ];
+        commonBuildInputs = [ pkgs.openssl ];
       in {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          name = "rewind-backend";
+          src = ./..;
+          cargoLock = { lockFile = ../Cargo.lock; };
+          nativeBuildInputs = commonNativeBuildInputs;
+          buildInputs = commonBuildInputs;
+        };
         devShells = {
           default = pkgs.mkShell {
+            nativeBuildInputs = commonNativeBuildInputs;
             buildInputs = with pkgs;
-              [ postgresql openssl pkg-config sqlx-cli sops yq ] ++ [ rust ];
+              [ postgresql sqlx-cli sops yq ] ++ [ rust ] ++ commonBuildInputs;
             shellHook = ''
               export PATH=$PATH:$(pwd)/nix/shell
 
-              if [ -f ./nix/secrets.yaml ]; then
-                export DATABASE_URL=$(sops --decrypt ./nix/secrets.yaml | yq -r '.["db"]')
-                echo "Loaded secrets from SOPS into environment"
+              if sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml >/dev/null 2>&1; then
+                export DATABASE_URL=$(sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml | yq -r '.["db"]')
+                echo "Loaded DATABASE_URL from SOPS"
               else
-                echo "Secrets not found!"
+                echo "Could not decrypt secrets (GPG locked?)"
               fi
 
               echo "
               🐚 Rust dev shell ready!
               Run: cargo build / cargo test / etc.
               Available commands:
-              - load_db.sh
-              - run_db.sh"
+              - load_db_migration.sh
             '';
           };
         };
