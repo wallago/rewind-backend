@@ -7,6 +7,7 @@ use uuid::Uuid;
 use crate::{
     config::DbPool,
     models::lists::{List, NewList, UpdateList},
+    utils::get_next_available_position,
 };
 
 pub async fn get_all_lists(pool: &DbPool) -> Result<Vec<List>> {
@@ -69,9 +70,24 @@ pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Resul
 }
 
 pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<Option<List>> {
-    if new_list.name.is_empty() || new_list.position < 0 {
+    if new_list.name.is_empty() {
         return Ok(None);
     }
+
+    let position = match new_list.position {
+        Some(position) => {
+            if position < 0 {
+                return Ok(None);
+            } else {
+                position
+            }
+        }
+        None => {
+            let lists = get_all_lists(pool).await?;
+            let used_positions: Vec<i32> = lists.iter().map(|list| list.position).collect();
+            get_next_available_position(used_positions)
+        }
+    };
 
     let rec = sqlx::query_as!(
         List,
@@ -83,7 +99,7 @@ pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<Option<List
         new_list.board_uuid,
         new_list.name,
         new_list.description,
-        new_list.position
+        position
     )
     .fetch_one(pool)
     .await?;

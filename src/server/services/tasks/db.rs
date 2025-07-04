@@ -11,6 +11,7 @@ use crate::{
         status::Status,
         tasks::{NewTask, Task, UpdateTask},
     },
+    utils::get_next_available_position,
 };
 
 pub async fn get_all_tasks(pool: &DbPool) -> Result<Vec<Task>> {
@@ -82,9 +83,24 @@ pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<
 }
 
 pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Option<Task>> {
-    if new_task.name.is_empty() || new_task.position < 0 {
+    if new_task.name.is_empty() {
         return Ok(None);
     }
+
+    let position = match new_task.position {
+        Some(position) => {
+            if position < 0 {
+                return Ok(None);
+            } else {
+                position
+            }
+        }
+        None => {
+            let lists = get_all_tasks(pool).await?;
+            let used_positions: Vec<i32> = lists.iter().map(|list| list.position).collect();
+            get_next_available_position(used_positions)
+        }
+    };
 
     let rec = sqlx::query_as!(
         Task,
@@ -102,9 +118,9 @@ pub async fn insert_task(pool: &DbPool, new_task: NewTask) -> Result<Option<Task
         new_task.list_uuid,
         new_task.name,
         new_task.description,
-        new_task.status as Status,
-        new_task.priority as Priorities,
-        new_task.position
+        new_task.status.unwrap_or(Status::Todo) as Status,
+        new_task.priority.unwrap_or(Priorities::Low) as Priorities,
+        position
     )
     .fetch_one(pool)
     .await?;

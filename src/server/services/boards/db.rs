@@ -7,6 +7,7 @@ use uuid::Uuid;
 use crate::{
     config::DbPool,
     models::boards::{Board, NewBoard, UpdateBoard},
+    utils::get_next_available_position,
 };
 
 pub async fn get_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
@@ -47,9 +48,24 @@ pub async fn get_board_by_uuid(pool: &DbPool, board_uuid: String) -> Result<Boar
 }
 
 pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Option<Board>> {
-    if new_board.name.is_empty() || new_board.position < 0 {
+    if new_board.name.is_empty() {
         return Ok(None);
     }
+
+    let position = match new_board.position {
+        Some(position) => {
+            if position < 0 {
+                return Ok(None);
+            } else {
+                position
+            }
+        }
+        None => {
+            let boards = get_all_boards(pool).await?;
+            let used_positions: Vec<i32> = boards.iter().map(|board| board.position).collect();
+            get_next_available_position(used_positions)
+        }
+    };
 
     let rec = sqlx::query_as!(
         Board,
@@ -60,7 +76,7 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Option<B
         "#,
         new_board.name,
         new_board.description,
-        new_board.position
+        Some(position)
     )
     .fetch_one(pool)
     .await?;
