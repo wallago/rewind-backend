@@ -37,7 +37,7 @@
               Available commands:
               - load_db_migration.sh
               - export DATABASE_URL=\$(sops --config ./nix/.sops.yaml --decrypt ./nix/secrets.yaml | yq -r '.[\"db\"]')
-              - cargo sqlx prepare
+              - cargo sqlx prepare --check
               "
             '';
           };
