@@ -2046,6 +2046,7 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "log_manager",
+ "openssl",
  "regex",
  "serde",
  "sqlx",
