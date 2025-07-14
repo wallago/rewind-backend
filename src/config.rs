@@ -9,6 +9,7 @@ pub struct Config {
     pub log_level: String,
     pub app: Application,
     pub db: String,
+    pub ssl: Ssl,
 }
 
 impl Config {
@@ -18,6 +19,7 @@ impl Config {
             log_level: load_env("RUST_LOG").unwrap_or("info".to_string()),
             app: Application::from_env(),
             db: load_env("DATABASE_URL").unwrap_or("postgres://rewind@127.0.0.1:5432".to_string()),
+            ssl: Ssl::from_env(),
         }
     }
 }
@@ -42,6 +44,28 @@ impl Application {
         let Self { host, port, .. } = self;
 
         format!("{host}:{port}")
+    }
+}
+
+#[derive(Debug)]
+pub struct Ssl {
+    pub crt: Option<String>,
+    pub key: Option<String>,
+    pub is_valid: bool,
+}
+
+impl Ssl {
+    fn from_env() -> Self {
+        let mut is_valid = true;
+        let crt = load_env("SSL_CRT");
+        if crt.is_none() {
+            is_valid = false;
+        }
+        let key = load_env("SSL_KEY");
+        if key.is_none() {
+            is_valid = false;
+        }
+        Self { crt, key, is_valid }
     }
 }
 
