@@ -32,12 +32,10 @@ pub async fn run() -> Result<()> {
     server = match CONFIG.ssl.is_valid {
         true => {
             tracing::warn!("HTTPS");
-            tracing::info!("{}", CONFIG.ssl.key.clone().unwrap());
-            tracing::info!("{}", CONFIG.ssl.crt.clone().unwrap());
             let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
             builder.set_private_key_file(&CONFIG.ssl.key.clone().unwrap(), SslFiletype::PEM)?;
             builder.set_certificate_chain_file(&CONFIG.ssl.crt.clone().unwrap())?;
-            builder.set_verify(SslVerifyMode::PEER);
+            builder.set_verify(SslVerifyMode::NONE);
             server.bind_openssl(CONFIG.app.server_url(), builder)
         }
         false => {
