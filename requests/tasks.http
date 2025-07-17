@@ -46,3 +46,18 @@ Accept: application/json
 
 DELETE {{api}}/tasks/{{task_uuid}} HTTP/1.1
 Accept: application/json
+
+###
+
+GET {{api}}/tasks/{{task_uuid}}/tags HTTP/1.1
+Accept: application/json
+
+###
+
+POST {{api}}/tasks/tags HTTP/1.1
+Accept: application/json
+
+{
+  "task_uuid": "{{task_uuid}}",
+  "tag_uuid": "{{tag_uuid}}"
+}
