@@ -4,7 +4,7 @@ use actix_web::{
 };
 
 use super::handlers;
-use crate::server::services::lists;
+use crate::server::services::{lists, tags};
 
 pub fn services() -> Scope {
     web::scope("/boards")
@@ -13,6 +13,10 @@ pub fn services() -> Scope {
         .route(
             "/{uuid}/lists",
             web::get().to(lists::handlers::list_lists_for_board),
+        )
+        .route(
+            "/{uuid}/tags",
+            web::get().to(tags::handlers::list_tags_for_board),
         )
         .route("/{uuid}", web::get().to(handlers::get_board))
         .route("/switch", web::put().to(handlers::switch_boards))

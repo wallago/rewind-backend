@@ -24,6 +24,26 @@ pub async fn create_tag(pool: web::Data<DbPool>, new_tag: web::Json<NewTag>) -> 
     }
 }
 
+pub async fn list_tags_for_task(
+    pool: web::Data<DbPool>,
+    task_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::get_tags_by_task_uuid(&pool, task_uuid.into_inner()).await {
+        Ok(lists) => HttpResponse::Ok().json(lists),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+pub async fn list_tags_for_board(
+    pool: web::Data<DbPool>,
+    board_uuid: web::Path<String>,
+) -> impl Responder {
+    match db::get_tags_by_board_uuid(&pool, board_uuid.into_inner()).await {
+        Ok(lists) => HttpResponse::Ok().json(lists),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 // pub async fn update_task(
 //     pool: web::Data<DbPool>,
 //     task_uuid: web::Path<String>,

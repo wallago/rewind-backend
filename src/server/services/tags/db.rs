@@ -13,9 +13,7 @@ pub async fn get_all_tags(pool: &DbPool) -> Result<Vec<Tag>> {
     let recs = sqlx::query_as!(
         Tag,
         r#"
-            SELECT
-                uuid, 
-                name, color
+            SELECT tags.*
             FROM tags
         "#
     )
@@ -29,9 +27,7 @@ pub async fn get_tag_by_uuid(pool: &DbPool, tag_uuid: String) -> Result<Tag> {
     let rec = sqlx::query_as!(
         Tag,
         r#"
-            SELECT
-                uuid, 
-                name, color
+            SELECT tags.*
             FROM tags
             WHERE uuid = $1
         "#,
@@ -41,6 +37,40 @@ pub async fn get_tag_by_uuid(pool: &DbPool, tag_uuid: String) -> Result<Tag> {
     .await?;
 
     Ok(rec)
+}
+
+pub async fn get_tags_by_task_uuid(pool: &DbPool, task_uuid: String) -> Result<Vec<Tag>> {
+    let uuid = Uuid::from_str(&task_uuid)?;
+    let recs = sqlx::query_as!(
+        Tag,
+        r#"
+            SELECT tags.*
+            FROM tags
+            JOIN tasks_tags ON tags.uuid = tasks_tags.tag_uuid
+            WHERE tasks_tags.task_uuid = $1
+        "#,
+        uuid
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(recs)
+}
+
+pub async fn get_tags_by_board_uuid(pool: &DbPool, board_uuid: String) -> Result<Vec<Tag>> {
+    let uuid = Uuid::from_str(&board_uuid)?;
+    let recs = sqlx::query_as!(
+        Tag,
+        r#"
+            SELECT tags.*
+            FROM tags
+            WHERE tags.board_uuid = $1
+        "#,
+        uuid
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(recs)
 }
 
 // pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<Vec<Task>> {
@@ -81,12 +111,11 @@ pub async fn insert_tag(pool: &DbPool, new_tag: NewTag) -> Result<Option<Tag>> {
     let rec = sqlx::query_as!(
         Tag,
         r#"
-            INSERT INTO tags (name, color)
-            VALUES ($1, $2)
-            RETURNING
-                uuid,
-                name, color 
+            INSERT INTO tags (board_uuid, name, color)
+            VALUES ($1, $2, $3)
+            RETURNING tags.*
         "#,
+        new_tag.board_uuid,
         new_tag.name,
         new_tag.color
     )

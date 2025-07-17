@@ -4,6 +4,7 @@ use actix_web::{
 };
 
 use super::handlers;
+use crate::server::services::tags;
 
 pub fn services() -> Scope {
     web::scope("/tasks")
@@ -13,4 +14,9 @@ pub fn services() -> Scope {
         .route("/switch", web::put().to(handlers::switch_tasks))
         .route("/{uuid}", web::put().to(handlers::update_task))
         .route("/{uuid}", web::delete().to(handlers::delete_task))
+        .route(
+            "/{uuid}/tags",
+            web::get().to(tags::handlers::list_tags_for_task),
+        )
+        .route("/tags", web::post().to(handlers::link_tag_to_task))
 }
