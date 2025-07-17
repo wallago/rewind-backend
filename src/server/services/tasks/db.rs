@@ -9,7 +9,7 @@ use crate::{
     models::{
         priorities::Priorities,
         status::Status,
-        tasks::{NewTask, Task, UpdateTask},
+        tasks::{LinkTagToTask, NewTask, Task, UpdateTask},
     },
     utils::get_next_available_position,
 };
@@ -247,7 +247,21 @@ pub async fn switch_tasks_position(
     .await?
     .rows_affected();
 
-    tracing::info!("{rows_affected}");
+    Ok(rows_affected > 0)
+}
+
+pub async fn insert_task_tag(pool: &DbPool, link: LinkTagToTask) -> Result<bool> {
+    let rows_affected = sqlx::query!(
+        r#"
+            INSERT INTO tasks_tags (task_uuid, tag_uuid)
+            VALUES ($1, $2)
+        "#,
+        link.task_uuid,
+        link.tag_uuid,
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
 
     Ok(rows_affected > 0)
 }

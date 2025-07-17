@@ -1,7 +1,7 @@
 use super::db;
 use crate::{
     config::DbPool,
-    models::tasks::{NewTask, UpdateTask},
+    models::tasks::{LinkTagToTask, NewTask, UpdateTask},
 };
 use actix_web::{HttpResponse, Responder, web};
 
@@ -65,6 +65,17 @@ pub async fn switch_tasks(
     match db::switch_tasks_position(&pool, task_uuid_from, task_uuid_to).await {
         Ok(true) => HttpResponse::NoContent().finish(),
         Ok(false) => HttpResponse::NotFound().body("Task not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+pub async fn link_tag_to_task(
+    pool: web::Data<DbPool>,
+    link: web::Json<LinkTagToTask>,
+) -> impl Responder {
+    match db::insert_task_tag(&pool, link.into_inner()).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Task or/and Tag not found"),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
