@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Serialize, FromRow)]
 pub struct Tag {
     pub uuid: Uuid,
+    pub board_uuid: Uuid,
     pub name: String,
     pub color: String,
 }
@@ -12,5 +13,6 @@ pub struct Tag {
 #[derive(Deserialize)]
 pub struct NewTag {
     pub name: String,
+    pub board_uuid: Uuid,
     pub color: String,
 }

@@ -40,3 +40,9 @@ pub struct UpdateTask {
     pub status: Option<Status>,
     pub priority: Option<Priorities>,
 }
+
+#[derive(Deserialize)]
+pub struct LinkTagToTask {
+    pub task_uuid: Uuid,
+    pub tag_uuid: Uuid,
+}
