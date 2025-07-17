@@ -14,10 +14,7 @@ pub async fn get_all_lists(pool: &DbPool) -> Result<Vec<List>> {
     let recs = sqlx::query_as!(
         List,
         r#"
-            SELECT
-                uuid, board_uuid, 
-                name, description, position, deleted,
-                created_at, updated_at 
+            SELECT lists.*
             FROM lists
             ORDER BY position
         "#
@@ -32,10 +29,7 @@ pub async fn get_list_by_uuid(pool: &DbPool, list_uuid: String) -> Result<List> 
     let rec = sqlx::query_as!(
         List,
         r#"
-            SELECT
-                uuid, board_uuid, 
-                name, description, position, deleted,
-                created_at, updated_at 
+            SELECT lists.*
             FROM lists
             WHERE uuid = $1
         "#,
@@ -52,11 +46,7 @@ pub async fn get_lists_by_board_uuid(pool: &DbPool, board_uuid: String) -> Resul
     let recs = sqlx::query_as!(
         List,
         r#"
-            SELECT
-                uuid, board_uuid, 
-                name, description, 
-                position, deleted,
-                created_at, updated_at 
+            SELECT lists.*
             FROM lists
             WHERE board_uuid = $1
             ORDER BY position
@@ -94,7 +84,7 @@ pub async fn insert_list(pool: &DbPool, new_list: NewList) -> Result<Option<List
         r#"
             INSERT INTO lists (board_uuid, name, description, position)
             VALUES ($1, $2, $3, $4)
-            RETURNING *
+            RETURNING lists.*
         "#,
         new_list.board_uuid,
         new_list.name,
@@ -213,8 +203,6 @@ pub async fn switch_lists_position(
     .execute(pool)
     .await?
     .rows_affected();
-
-    tracing::info!("{rows_affected}");
 
     Ok(rows_affected > 0)
 }

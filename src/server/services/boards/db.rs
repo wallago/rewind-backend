@@ -14,10 +14,7 @@ pub async fn get_all_boards(pool: &DbPool) -> Result<Vec<Board>> {
     let recs = sqlx::query_as!(
         Board,
         r#"
-            SELECT
-                uuid, 
-                name, description, position, deleted,
-                created_at, updated_at
+            SELECT boards.*
             FROM boards
             ORDER BY position
         "#
@@ -32,10 +29,7 @@ pub async fn get_board_by_uuid(pool: &DbPool, board_uuid: String) -> Result<Boar
     let rec = sqlx::query_as!(
         Board,
         r#"
-            SELECT
-                uuid, 
-                name, description, position, deleted,
-                created_at, updated_at 
+            SELECT boards.*
             FROM boards
             WHERE uuid = $1
         "#,
@@ -72,7 +66,7 @@ pub async fn insert_board(pool: &DbPool, new_board: NewBoard) -> Result<Option<B
         r#"
             INSERT INTO boards (name, description, position)
             VALUES ($1, $2, $3)
-            RETURNING *
+            RETURNING boards.*
         "#,
         new_board.name,
         new_board.description,
@@ -190,8 +184,6 @@ pub async fn switch_boards_position(
     .execute(pool)
     .await?
     .rows_affected();
-
-    tracing::info!("{rows_affected}");
 
     Ok(rows_affected > 0)
 }
