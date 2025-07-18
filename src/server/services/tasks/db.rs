@@ -265,3 +265,21 @@ pub async fn insert_task_tag(pool: &DbPool, link: LinkTagToTask) -> Result<bool>
 
     Ok(rows_affected > 0)
 }
+
+pub async fn delete_task_tag(pool: &DbPool, task_uuid: String, tag_uuid: String) -> Result<bool> {
+    let task_uuid = Uuid::from_str(&task_uuid)?;
+    let tag_uuid = Uuid::from_str(&tag_uuid)?;
+    let rows_affected = sqlx::query!(
+        r#"
+            DELETE FROM tasks_tags
+            WHERE tasks_tags.task_uuid = $1 AND tasks_tags.tag_uuid = $2
+        "#,
+        task_uuid,
+        tag_uuid,
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows_affected > 0)
+}

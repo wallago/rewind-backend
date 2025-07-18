@@ -61,3 +61,8 @@ Accept: application/json
   "task_uuid": "{{task_uuid}}",
   "tag_uuid": "{{tag_uuid}}"
 }
+
+###
+
+DELETE {{api}}/tasks/tags?task_uuid={{task_uuid}}&tag_uuid={{tag_uuid}} HTTP/1.1
+Accept: application/json

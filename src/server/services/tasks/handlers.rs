@@ -79,3 +79,16 @@ pub async fn link_tag_to_task(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+pub async fn unlink_tag_to_task(
+    pool: web::Data<DbPool>,
+    uuids: web::Path<(String, String)>,
+) -> impl Responder {
+    tracing::error!("lsdf");
+    let (task_uuid, tag_uuid) = uuids.into_inner();
+    match db::delete_task_tag(&pool, task_uuid, tag_uuid).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Task or/and Tag not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}

@@ -29,7 +29,7 @@ pub async fn get_tag_by_uuid(pool: &DbPool, tag_uuid: String) -> Result<Tag> {
         r#"
             SELECT tags.*
             FROM tags
-            WHERE uuid = $1
+            WHERE tags.uuid = $1
         "#,
         uuid
     )
@@ -73,31 +73,6 @@ pub async fn get_tags_by_board_uuid(pool: &DbPool, board_uuid: String) -> Result
     Ok(recs)
 }
 
-// pub async fn get_tasks_by_list_uuid(pool: &DbPool, list_uuid: String) -> Result<Vec<Task>> {
-//     let uuid = Uuid::from_str(&list_uuid)?;
-//     let recs = sqlx::query_as!(
-//         Task,
-//         r#"
-//             SELECT
-//                 uuid, list_uuid,
-//                 name, description,
-//                 position, deleted,
-//                 status as "status: Status",
-//                 priority as "priority: Priorities",
-//                 created_at, updated_at,
-//                 deadline, start_date, finish_date
-//             FROM tasks
-//             WHERE list_uuid = $1
-//             ORDER BY position
-//         "#,
-//         uuid
-//     )
-//     .fetch_all(pool)
-//     .await?;
-
-//     Ok(recs)
-// }
-
 pub async fn insert_tag(pool: &DbPool, new_tag: NewTag) -> Result<Option<Tag>> {
     if new_tag.name.is_empty() || new_tag.color.is_empty() {
         return Ok(None);
@@ -122,6 +97,22 @@ pub async fn insert_tag(pool: &DbPool, new_tag: NewTag) -> Result<Option<Tag>> {
     .fetch_one(pool)
     .await?;
     Ok(Some(rec))
+}
+
+pub async fn delete_tag(pool: &DbPool, uuid: String) -> Result<bool> {
+    let uuid = Uuid::from_str(&uuid)?;
+    let rows_affected = sqlx::query!(
+        r#"
+            DELETE FROM tags
+            WHERE uuid = $1
+        "#,
+        uuid
+    )
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows_affected > 0)
 }
 
 // pub async fn update_task(
@@ -174,22 +165,6 @@ pub async fn insert_tag(pool: &DbPool, new_tag: NewTag) -> Result<Option<Tag>> {
 
 //     let query = builder.build();
 //     let rows_affected = query.execute(pool).await?.rows_affected();
-
-//     Ok(rows_affected > 0)
-// }
-
-// pub async fn delete_task(pool: &DbPool, task_uuid: String) -> Result<bool> {
-//     let uuid = Uuid::from_str(&task_uuid)?;
-//     let rows_affected = sqlx::query!(
-//         r#"
-//             DELETE FROM tasks
-//             WHERE uuid = $1
-//         "#,
-//         uuid
-//     )
-//     .execute(pool)
-//     .await?
-//     .rows_affected();
 
 //     Ok(rows_affected > 0)
 // }
