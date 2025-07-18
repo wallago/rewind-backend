@@ -44,6 +44,14 @@ pub async fn list_tags_for_board(
     }
 }
 
+pub async fn delete_tag(pool: web::Data<DbPool>, tag_uuid: web::Path<String>) -> impl Responder {
+    match db::delete_tag(&pool, tag_uuid.into_inner()).await {
+        Ok(true) => HttpResponse::NoContent().finish(),
+        Ok(false) => HttpResponse::NotFound().body("Tag not found"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 // pub async fn update_task(
 //     pool: web::Data<DbPool>,
 //     task_uuid: web::Path<String>,

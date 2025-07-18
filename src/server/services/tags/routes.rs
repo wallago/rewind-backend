@@ -10,4 +10,5 @@ pub fn services() -> Scope {
         .route("", web::get().to(handlers::list_tags))
         .route("", web::post().to(handlers::create_tag))
         .route("/{uuid}", web::get().to(handlers::get_tag))
+        .route("/{uuid}", web::delete().to(handlers::delete_tag))
 }

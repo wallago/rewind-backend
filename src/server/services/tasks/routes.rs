@@ -19,4 +19,8 @@ pub fn services() -> Scope {
             web::get().to(tags::handlers::list_tags_for_task),
         )
         .route("/tags", web::post().to(handlers::link_tag_to_task))
+        .route(
+            "/{uuid}/tags/{tag_uuid}",
+            web::delete().to(handlers::unlink_tag_to_task),
+        )
 }

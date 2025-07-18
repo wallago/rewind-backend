@@ -28,6 +28,13 @@ Content-Type: application/json
 GET {{api}}/tags/{{tag_uuid}} HTTP/1.1
 Accept: application/json
 
+###
+
+# DELETE {{api}}/tags/{{tag_uuid}} HTTP/1.1
+DELETE {{api}}/tags/729cdb82-a36d-432a-a8c6-becb03f8dd03 HTTP/1.1
+Accept: application/json
+
+
 # ###
 
 # PUT {{api}}/boards/{{board_uuid}} HTTP/1.1
@@ -38,11 +45,6 @@ Accept: application/json
 #   "name": "Buy milk",
 #   "position": null 
 # }
-
-# ###
-
-# DELETE {{api}}/boards/{{board_uuid}} HTTP/1.1
-# Accept: application/json
 
 # ###
 
