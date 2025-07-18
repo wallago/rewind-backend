@@ -2,11 +2,12 @@ use std::str::FromStr;
 
 use anyhow::Result;
 use regex::Regex;
+use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
 
 use crate::{
     config::DbPool,
-    models::tags::{NewTag, Tag},
+    models::tags::{NewTag, Tag, UpdateTag},
 };
 
 pub async fn get_all_tags(pool: &DbPool) -> Result<Vec<Tag>> {
@@ -111,6 +112,39 @@ pub async fn delete_tag(pool: &DbPool, uuid: String) -> Result<bool> {
     .execute(pool)
     .await?
     .rows_affected();
+
+    Ok(rows_affected > 0)
+}
+
+pub async fn update_tag(pool: &DbPool, uuid: String, updated_tag: UpdateTag) -> Result<bool> {
+    let uuid = Uuid::from_str(&uuid)?;
+    let mut any_field = false;
+
+    let mut builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE tags SET ");
+    let mut separated = builder.separated(", ");
+
+    if let Some(name) = &updated_tag.name {
+        if !name.is_empty() {
+            separated.push("name = ").push_bind_unseparated(name);
+            any_field = true
+        }
+    }
+
+    if let Some(color) = &updated_tag.color {
+        separated
+            .push("description = ")
+            .push_bind_unseparated(color);
+        any_field = true
+    }
+
+    if !any_field {
+        return Ok(false);
+    }
+
+    builder.push(" WHERE uuid = ").push_bind(uuid);
+
+    let query = builder.build();
+    let rows_affected = query.execute(pool).await?.rows_affected();
 
     Ok(rows_affected > 0)
 }

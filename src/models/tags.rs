@@ -16,3 +16,9 @@ pub struct NewTag {
     pub board_uuid: Uuid,
     pub color: String,
 }
+
+#[derive(Deserialize)]
+pub struct UpdateTag {
+    pub name: Option<String>,
+    pub color: Option<String>,
+}
