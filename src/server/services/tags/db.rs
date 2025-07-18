@@ -131,9 +131,7 @@ pub async fn update_tag(pool: &DbPool, uuid: String, updated_tag: UpdateTag) -> 
     }
 
     if let Some(color) = &updated_tag.color {
-        separated
-            .push("description = ")
-            .push_bind_unseparated(color);
+        separated.push("color = ").push_bind_unseparated(color);
         any_field = true
     }
 
